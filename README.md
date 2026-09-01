@@ -1,0 +1,89 @@
+# Departmental Accounting System
+
+**Public repository:** <https://github.com/samisamiullah273/departmental-accounting-system>
+
+A local, reproducible departmental accounting application for student receipts and controlled expenditures. It implements double-entry vouchers, approval-before-posting, a cash book, a general ledger view, and an audit log.
+
+## Main features
+
+## Included workflows
+
+- Student master records and student-fee receipt vouchers.
+- Payment vouchers for teaching materials, office costs, travel, and utilities.
+- A chart of accounts with cash, bank, income, expense, and fund accounts.
+- Balanced debit/credit validation on every voucher.
+- Human approval queue: pending transactions do not affect income, expense, cash book, or ledger totals.
+- Immutable transaction history in SQLite (records are not deleted by the UI) and audit events for creation/approval.
+- Dashboard totals and browser-based cash book/general-ledger views.
+- Clerk login with salted PBKDF2 password storage and HttpOnly session cookies (development account: `clerk` / `change-me`; change this before use).
+- Supplier master data and configurable income-tax withholding, posted to `Income Tax Payable`.
+- Policy heads transcribed from the supplied notification: paper, stationery, Boards/DTRC/Faculty, toner, generic consumables, and other expenses requiring approval.
+- Bank-statement and income/receipt document retention for CSV, XLSX, and PDF uploads. CSV/XLSX row counts are detected; source documents remain review-only until a human posts them.
+- Editable printable payment voucher template with ten line items and department, payee, bank-account, approval, and signature fields.
+- Four-copy printable student-slip workflow: Bank Copy, Student Copy, Treasurer Copy, and Department Copy.
+- Gemini AI Assistant for guided help with software workflows, reports, approvals, suppliers, uploads, and printable forms.
+
+## Project layout
+
+- `src/app.py` - built-in HTTP server and API routes.
+- `src/accounting.py` - SQLite schema, accounting services, authentication, approvals, reports, suppliers, withholding, and uploads.
+- `src/static/index.html` - browser interface and editable print templates.
+- `data/` - local runtime data; SQLite databases are intentionally ignored by Git.
+
+## Run on Windows
+
+```powershell
+python -m venv venv
+.\venv\Scripts\activate
+python -m src.app
+```
+
+Open <http://127.0.0.1:8000>. The first run creates `data/accounting.db`. To reset a development database, stop the server and remove that file after human confirmation.
+
+On Windows, double-click `start-server.vbs` in the project folder for normal use. It starts the server silently in the background and opens the application automatically; no PowerShell window needs to remain open. It also stops an older copy on port 8000 before starting, which prevents duplicate-server conflicts. To stop it, double-click `stop-server.bat`. The `run-server.bat` file remains available for troubleshooting with a visible server window.
+
+## Free public deployment with Render
+
+The repository includes `render.yaml` for a free Render Web Service. To create a clickable public URL:
+
+1. Create an account at <https://render.com> and sign in with GitHub.
+2. Select **New → Blueprint**.
+3. Select the `samisamiullah273/departmental-accounting-system` repository and the `main` branch.
+4. Review the service named `departmental-accounting-system`, then choose the **Free** plan and deploy it.
+5. When deployment finishes, open the `https://...onrender.com` URL shown by Render.
+6. In the service's **Environment** settings, add `GEMINI_API_KEY` if the AI Assistant is needed, then redeploy.
+
+Render supplies the web-service `PORT` automatically; the application is configured to use it. Free services may sleep after inactivity and may restart. Because the free plan does not provide a persistent disk, this SQLite demonstration database and uploaded documents can be lost during a restart or redeploy. Do not use the free deployment for real financial records. Use a persistent production database, backups, HTTPS, secure credentials, and an accounting/security review before real departmental use.
+
+Sign in with the development account `clerk` / `change-me` on the first local run. Change this password before deployment or any real use. Do not commit the generated database, uploaded documents, passwords, tokens, or other secrets.
+
+## Configure the Gemini AI Assistant
+
+The AI Assistant uses Google's Gemini API through the local Python server. The API key is never sent to the browser and must not be committed to Git. Create a Gemini API key in Google AI Studio, then set it in the same PowerShell session before starting the server:
+
+```powershell
+$env:GEMINI_API_KEY = "paste-your-key-here"
+python -m src.app
+```
+
+Open the **AI Assistant** item in the sidebar after logging in. It provides advisory explanations only; it cannot create, approve, delete, or change accounting records. Never enter passwords, API keys, or confidential documents into the chat. If `GEMINI_API_KEY` is not configured, the assistant displays a setup message instead of making an external request.
+
+## Open the public project
+
+The source code and README are publicly available at:
+
+<https://github.com/samisamiullah273/departmental-accounting-system>
+
+This GitHub link is the public source-code page; it is not a hosted live application. To run the software, clone the repository and follow the Windows instructions above. A live public deployment requires a Python-capable hosting service, a production database, HTTPS, secure credentials, backups, and an accounting/security review.
+
+## Development setup in VS Code
+
+Install Microsoft Python, Jupyter, and Pylance extensions; install Markdown All in One when a written report is needed. Select `venv` using **Python: Select Interpreter**. The project uses only the Python standard library, so `requirements.txt` is intentionally empty of packages. Keep analysis notebooks in `notebooks/` and reusable code in `src/`.
+
+## Accounting controls and limitations
+
+This is a functional local foundation, not a jurisdiction-specific certified accounting package. The supplied notification was transcribed into policy-head metadata, but its legal/accounting interpretation and tax rates must be confirmed by the department. Configure fiscal periods, stronger production secrets, user administration, backups, bank reconciliation, exports, and local retention requirements before production use. Uploaded bank and receipt documents are deliberately not auto-posted; a human must review and create balanced vouchers.
+
+## Suggested extension roadmap
+
+Add authenticated roles (clerk/approver/auditor), supplier and budget modules, adjustment-voucher form, period closing, PDF/CSV reports, automated backups, and a deployment database. Any production deployment should receive explicit human authorization and an accounting review.
