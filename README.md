@@ -40,6 +40,8 @@ python -m src.app
 
 Open <http://127.0.0.1:8000>. The first run creates `data/accounting.db`. To reset a development database, stop the server and remove that file after human confirmation.
 
+On Windows, you can also double-click `run-server.bat` in the project folder. Keep the server window open while using the application.
+
 Sign in with the development account `clerk` / `change-me` on the first local run. Change this password before deployment or any real use. Do not commit the generated database, uploaded documents, passwords, tokens, or other secrets.
 
 ## Configure the Gemini AI Assistant
