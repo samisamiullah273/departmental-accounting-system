@@ -40,7 +40,7 @@ python -m src.app
 
 Open <http://127.0.0.1:8000>. The first run creates `data/accounting.db`. To reset a development database, stop the server and remove that file after human confirmation.
 
-On Windows, you can also double-click `run-server.bat` in the project folder. Keep the server window open while using the application.
+On Windows, double-click `start-server.vbs` in the project folder for normal use. It starts the server silently in the background and opens the application automatically; no PowerShell window needs to remain open. It also stops an older copy on port 8000 before starting, which prevents duplicate-server conflicts. To stop it, double-click `stop-server.bat`. The `run-server.bat` file remains available for troubleshooting with a visible server window.
 
 ## Free public deployment with Render
 
