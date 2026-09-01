@@ -119,5 +119,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("Departmental Accounting: http://127.0.0.1:8000")
-    HTTPServer(("127.0.0.1", 8000), Handler).serve_forever()
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "8000"))
+    print(f"Departmental Accounting: http://{host}:{port}")
+    HTTPServer((host, port), Handler).serve_forever()

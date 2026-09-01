@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: departmental-accounting-system
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m src.app
+    healthCheckPath: /

@@ -42,6 +42,19 @@ Open <http://127.0.0.1:8000>. The first run creates `data/accounting.db`. To res
 
 On Windows, you can also double-click `run-server.bat` in the project folder. Keep the server window open while using the application.
 
+## Free public deployment with Render
+
+The repository includes `render.yaml` for a free Render Web Service. To create a clickable public URL:
+
+1. Create an account at <https://render.com> and sign in with GitHub.
+2. Select **New → Blueprint**.
+3. Select the `samisamiullah273/departmental-accounting-system` repository and the `main` branch.
+4. Review the service named `departmental-accounting-system`, then choose the **Free** plan and deploy it.
+5. When deployment finishes, open the `https://...onrender.com` URL shown by Render.
+6. In the service's **Environment** settings, add `GEMINI_API_KEY` if the AI Assistant is needed, then redeploy.
+
+Render supplies the web-service `PORT` automatically; the application is configured to use it. Free services may sleep after inactivity and may restart. Because the free plan does not provide a persistent disk, this SQLite demonstration database and uploaded documents can be lost during a restart or redeploy. Do not use the free deployment for real financial records. Use a persistent production database, backups, HTTPS, secure credentials, and an accounting/security review before real departmental use.
+
 Sign in with the development account `clerk` / `change-me` on the first local run. Change this password before deployment or any real use. Do not commit the generated database, uploaded documents, passwords, tokens, or other secrets.
 
 ## Configure the Gemini AI Assistant
