@@ -21,6 +21,7 @@ A local, reproducible departmental accounting application for student receipts a
 - Bank-statement and income/receipt document retention for CSV, XLSX, and PDF uploads. CSV/XLSX row counts are detected; source documents remain review-only until a human posts them.
 - Editable printable payment voucher template with ten line items and department, payee, bank-account, approval, and signature fields.
 - Four-copy printable student-slip workflow: Bank Copy, Student Copy, Treasurer Copy, and Department Copy.
+- Gemini AI Assistant for guided help with software workflows, reports, approvals, suppliers, uploads, and printable forms.
 
 ## Project layout
 
@@ -40,6 +41,17 @@ python -m src.app
 Open <http://127.0.0.1:8000>. The first run creates `data/accounting.db`. To reset a development database, stop the server and remove that file after human confirmation.
 
 Sign in with the development account `clerk` / `change-me` on the first local run. Change this password before deployment or any real use. Do not commit the generated database, uploaded documents, passwords, tokens, or other secrets.
+
+## Configure the Gemini AI Assistant
+
+The AI Assistant uses Google's Gemini API through the local Python server. The API key is never sent to the browser and must not be committed to Git. Create a Gemini API key in Google AI Studio, then set it in the same PowerShell session before starting the server:
+
+```powershell
+$env:GEMINI_API_KEY = "paste-your-key-here"
+python -m src.app
+```
+
+Open the **AI Assistant** item in the sidebar after logging in. It provides advisory explanations only; it cannot create, approve, delete, or change accounting records. Never enter passwords, API keys, or confidential documents into the chat. If `GEMINI_API_KEY` is not configured, the assistant displays a setup message instead of making an external request.
 
 ## Open the public project
 

@@ -3,6 +3,9 @@
 import json
 import base64
 import secrets
+import os
+from urllib import error as urlerror
+from urllib import request as urlrequest
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -14,6 +17,41 @@ except ImportError:  # Allows `python src/app.py` as well as `python -m src.app`
 
 DB = AccountingDB(Path(__file__).parent.parent / "data" / "accounting.db")
 SESSIONS: dict[str, dict] = {}
+
+
+def gemini_answer(message: str) -> str:
+    """Ask Gemini for advisory help without exposing the API key to the browser."""
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise AccountingError("AI assistant is not configured. Set GEMINI_API_KEY and restart the server.")
+    prompt = (
+        "You are the Departmental Accounting Assistant. Give concise, practical guidance "
+        "about this software's workflows, reports, approvals, suppliers, uploads, and "
+        "printable forms. You may explain accounting concepts, but never claim to have "
+        "created, approved, deleted, or changed a transaction. Tell the user to use the "
+        "corresponding menu and obtain human approval for financial actions. Do not request "
+        "passwords, API keys, or confidential documents.\n\nUser question: " + message
+    )
+    body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
+    endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+    request = urlrequest.Request(
+        endpoint,
+        data=body,
+        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+        method="POST",
+    )
+    try:
+        with urlrequest.urlopen(request, timeout=30) as response:
+            result = json.loads(response.read())
+    except urlerror.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:300]
+        raise AccountingError(f"Gemini request failed ({exc.code}). {detail}") from exc
+    except (urlerror.URLError, TimeoutError) as exc:
+        raise AccountingError("Gemini could not be reached. Check the server connection and try again.") from exc
+    try:
+        return result["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except (KeyError, IndexError, TypeError) as exc:
+        raise AccountingError("Gemini returned an empty or unexpected response.") from exc
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -65,6 +103,11 @@ class Handler(BaseHTTPRequestHandler):
                 result = user; self.send_response(200); self.send_header("Set-Cookie", f"session={token}; HttpOnly; SameSite=Strict; Path=/")
                 body = json.dumps(result).encode(); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body); return
             elif not self.require_user(): return
+            elif path == "/api/ai-chat":
+                message = str(data.get("message", "")).strip()
+                if not message: raise AccountingError("Enter a question for the AI assistant")
+                if len(message) > 2000: raise AccountingError("AI questions must be 2,000 characters or fewer")
+                result = {"reply": gemini_answer(message)}
             elif path == "/api/students": result = {"id": DB.add_student(data.get("student_no", ""), data.get("name", ""), data.get("department", ""))}
             elif path == "/api/suppliers": result = {"id": DB.add_supplier(data.get("name", ""), data.get("tax_number", ""), data.get("withholding_rate", 0))}
             elif path == "/api/uploads": result = DB.upload(data["filename"], data["kind"], base64.b64decode(data["content"]), self.user()["name"])
